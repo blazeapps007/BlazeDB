@@ -1,0 +1,145 @@
+[
+  {
+    "id": "blazescanner",
+    "name": "Blaze Scanner",
+    "description": "Modern STEEM blockchain explorer with beautiful UI and comprehensive features by @blaze.apps.",
+    "url": "https://blazescanner.org",
+    "category": "Explorer",
+    "icon": "https://steemitimages.com/u/blaze.apps/avatar",
+    "status": "active",
+    "features": ["Modern UI", "Real-time Updates", "Market Data", "Witness Info"],
+    "developer": "@blaze.apps"
+  },
+  {
+    "id": "steemworld",
+    "name": "SteemWorld",
+    "description": "Comprehensive STEEM account management and blockchain interaction platform by @steemchiller.",
+    "url": "https://steemworld.org",
+    "category": "Account Management",
+    "icon": "https://steemitimages.com/u/steemchiller/avatar",
+    "status": "active",
+    "features": ["Account Dashboard", "Voting", "Delegations", "Witness Voting"],
+    "developer": "@steemchiller"
+  },
+  {
+    "id": "h4lab",
+    "name": "H4Lab",
+    "description": "Official Website for @h4lab, which provides real-time stats and financial research tools like article searching.",
+    "url": "https://h4lab.com/",
+    "category": "Visualization",
+    "icon": "https://steemitimages.com/u/h4lab/avatar",
+    "status": "active",
+    "features": ["Real-time Stats", "Financial Research Tools", "Article Searching"],
+    "developer": "@h4lab"
+  },
+  {
+    "id": "upex",
+    "name": "UPEX",
+    "description": "Delegate and earn service with the highest APR. UPEX provides a 20x upvote to one post per day against your delegation.",
+    "url": "https://steemit.com/@upex",
+    "category": "Automation",
+    "icon": "https://steemitimages.com/u/upex/avatar",
+    "status": "active",
+    "features": ["Delegation Service", "High APR", "Daily 20X Upvote"],
+    "developer": "@upex"
+  },
+  {
+    "id": "dice-worldofxpilar",
+    "name": "World of Xpilar Dice",
+    "description": "Dice roll gambling game on STEEM blockchain by @xpilar, offering exciting gaming experience.",
+    "url": "https://dice.worldofxpilar.com",
+    "category": "Gaming",
+    "icon": "https://steemitimages.com/u/xpilar/avatar",
+    "status": "active",
+    "features": ["Dice Gaming", "STEEM Integration", "Fair Play", "Instant Payouts"],
+    "developer": "@xpilar"
+  },
+  {
+    "id": "bingo-worldofxpilar",
+    "name": "World of Xpilar Bingo",
+    "description": "Bingo game on STEEM blockchain by @xpilar, bringing classic bingo experience to crypto gaming.",
+    "url": "https://bingo.worldofxpilar.com/index.html",
+    "category": "Gaming",
+    "icon": "https://steemitimages.com/u/xpilar/avatar",
+    "status": "active",
+    "features": ["Bingo Gaming", "STEEM Rewards", "Community Play", "Fair Gaming"],
+    "developer": "@xpilar"
+  },
+  {
+    "id": "steempro",
+    "name": "SteemPro",
+    "description": "Condenser Alternative for STEEM blockchain.",
+    "url": "https://www.steempro.com",
+    "category": "Condenser",
+    "icon": "https://steemitimages.com/u/steempro.com/avatar",
+    "status": "active",
+    "features": ["Modern UI", "Post Creation", "Voting", "Wallet Management"],
+    "developer": "@steempro.com"
+  },
+  {
+    "id": "steemchat",
+    "name": "SteemChat",
+    "description": "Chat platform for STEEM users to connect and communicate with fellow community members.",
+    "url": "https://steemchat.org",
+    "category": "Social",
+    "icon": "https://steemitimages.com/u/stmpak.wit/avatar",
+    "status": "active",
+    "features": ["Real-time Chat", "Community Channels", "User Authentication", "STEEM Integration"],
+    "developer": "@stmpak.wit"
+  },
+  {
+    "id": "steematlas",
+    "name": "SteemAtlas",
+    "description": "The illuminated world of Steempowered Atlas - explore the STEEM community through an interactive world map.",
+    "url": "https://steematlas.com",
+    "category": "Visualization",
+    "icon": "https://steemitimages.com/u/pennsif/avatar",
+    "status": "active",
+    "features": ["Interactive Map", "Community Visualization", "Geographic Data", "STEEM Integration"],
+    "developer": "@pennsif"
+  },
+  {
+    "id": "botsteem",
+    "name": "BotSteem",
+    "description": "Automated STEEM bot services for content curation and community management by @botto.steem.",
+    "url": "https://botsteem.com",
+    "category": "Automation",
+    "icon": "https://steemitimages.com/u/botto.steem/avatar",
+    "status": "active",
+    "features": ["Auto-voting", "Curation", "Community Tools", "Analytics"],
+    "developer": "@botto.steem"
+  },
+  {
+    "id": "steemscan",
+    "name": "SteemScan",
+    "description": "Blockchain Explorer for STEEM blockchain @future.witness.",
+    "url": "https://steemscan.com",
+    "category": "Explorer",
+    "icon": "https://steemitimages.com/u/future.witness/avatar",
+    "status": "active",
+    "features": ["Transaction Scanner", "Block Search", "Account History", "API"],
+    "developer": "@future.witness"
+  },
+  {
+    "id": "steemdb",
+    "name": "SteemDB",
+    "description": "Advanced STEEM blockchain explorer and database with detailed analytics and statistics.",
+    "url": "https://steemdb.io",
+    "category": "Explorer",
+    "icon": "https://steemitimages.com/u/steemitblog/avatar",
+    "status": "active",
+    "features": ["Database Analytics", "Statistics", "Historical Data", "Advanced Search"],
+    "developer": "@steemitblog"
+  },
+  {
+    "id": "steemx",
+    "name": "SteemX",
+    "description": "Condenser Alternative for STEEM blockchain.",
+    "url": "https://steemx.org",
+    "category": "Condenser",
+    "icon": "https://steemitimages.com/u/steemx/avatar",
+    "status": "active",
+    "features": ["Advanced UI", "Content Management", "Community Features", "Analytics"],
+    "developer": "@steemx"
+  }
+]
