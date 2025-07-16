@@ -1,6 +1,6 @@
-
 import { useQuery } from '@tanstack/react-query';
 
+// Interface defining the structure for a decentralized application (dApp) object.
 interface DApp {
   id: string;
   name: string;
@@ -13,19 +13,37 @@ interface DApp {
   developer: string;
 }
 
+/**
+ * Fetches the ecosystem data from the local public folder.
+ * Vite makes files in the `public` directory available at the root path.
+ * @returns A promise that resolves to an array of DApp objects.
+ */
 const fetchEcosystemData = async (): Promise<DApp[]> => {
-  const response = await fetch('https://raw.githubusercontent.com/blazeapps007/BlazeDB/refs/heads/Blazed/Ecosystem.json');
+  // Fetch the JSON file from the public directory.
+  const response = await fetch('/Ecosystem.json');
+  
+  // Check if the request was successful.
   if (!response.ok) {
     throw new Error('Failed to fetch ecosystem data');
   }
+  
+  // Parse and return the JSON data.
   return response.json();
 };
 
+/**
+ * Custom hook to fetch and cache the ecosystem data.
+ * It uses @tanstack/react-query for efficient data management.
+ */
 export const useEcosystemData = () => {
   return useQuery({
-    queryKey: ['ecosystem-data'],
+    // Unique key for this query to manage caching.
+    queryKey: ['ecosystem-data-local'],
+    // The function that will be called to fetch the data.
     queryFn: fetchEcosystemData,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes (renamed from cacheTime)
+    // The data will be considered fresh for 5 minutes.
+    staleTime: 5 * 60 * 1000, 
+    // The data will be garbage collected after 10 minutes of being inactive.
+    gcTime: 10 * 60 * 1000,
   });
 };
