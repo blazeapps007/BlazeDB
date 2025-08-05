@@ -173,7 +173,7 @@ const DAOProposals = () => {
           <div className="space-y-4">
             {proposals.map((proposal) => {
               const cardClassName = isFundedProposal(proposal.rank) && !isReturnProposal(proposal.subject)
-                ? "glass-card p-6 hover:bg-secondary/5 transition-colors bg-green-50 border-green-200"
+                ? "glass-card p-6 hover:bg-secondary/5 transition-colors bg-green-500/10 border-green-500/20"
                 : "glass-card p-6 hover:bg-secondary/5 transition-colors";
 
               return (
@@ -251,7 +251,7 @@ const DAOProposals = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {proposals.map((proposal) => {
               const cardClassName = isFundedProposal(proposal.rank) && !isReturnProposal(proposal.subject)
-                ? "glass-card p-6 hover:bg-secondary/5 transition-colors bg-green-50 border-green-200 h-full"
+                ? "glass-card p-6 hover:bg-secondary/5 transition-colors bg-green-500/10 border-green-500/20 h-full"
                 : "glass-card p-6 hover:bg-secondary/5 transition-colors h-full";
 
               return (
