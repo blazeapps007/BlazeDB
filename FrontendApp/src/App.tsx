@@ -14,11 +14,12 @@ const BlockDetails = lazy(() => import("./pages/BlockDetails"));
 const TransactionDetails = lazy(() => import("./pages/TransactionDetails"));
 const AccountDetails = lazy(() => import("./pages/AccountDetails"));
 const Blocks = lazy(() => import("./pages/Blocks"));
-const InternalMarket = lazy(() => import("./pages/InternalMarket"));
+
 const PostView = lazy(() => import("./pages/PostView"));
 const Witnesses = lazy(() => import("./pages/Witnesses"));
 const DAOProposals = lazy(() => import("./pages/DAOProposals"));
 const Ecosystem = lazy(() => import("./pages/Ecosystem"));
+const Statistics = lazy(() => import("./pages/Statistics"));
 
 // Optimized query client with better caching
 const queryClient = new QueryClient({
@@ -56,10 +57,11 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/blocks" element={<Blocks />} />
-              <Route path="/internal-market" element={<InternalMarket />} />
+              
               <Route path="/dao-proposals" element={<DAOProposals />} />
               <Route path="/witnesses" element={<Witnesses />} />
               <Route path="/ecosystem" element={<Ecosystem />} />
+              <Route path="/statistics" element={<Statistics />} />
               <Route path="/block/:blockNumber" element={<BlockDetails />} />
               <Route path="/transaction/:txHash" element={<TransactionDetails />} />
               <Route path="/account/:username" element={<AccountDetails />} />

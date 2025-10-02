@@ -6,6 +6,9 @@ from pydantic import BaseModel
 from contextlib import asynccontextmanager
 import config
 
+# Import your new database management functions
+from database import connect_to_mongo, close_mongo_connection, create_indexes
+
 # Import your routers
 from api.blocks import router as blocks_router
 #from api.operations import router as operations_router
@@ -18,12 +21,10 @@ from api.state import router as state_router
 #from api.governance import router as governance_router
 
 # --- Declarative Cache Rules ---
-# The key is the full path, and the value is the cache expiry time in seconds.
-# Use 'None' to explicitly skip caching for a path.
 CACHE_RULES = {
-    "/blocks/getBlockDetails": 300,  # 5 minutes 
-    "/blocks/getBlocks": None,       # Skip caching
-    "/state/getTPS": 21600, 	     # 1 Day Caching
+    "/blocks/getBlockDetails": 300,   # 5 minutes 
+    "/blocks/getBlocks": None,        # Skip caching
+    "/state/getTPS": 21600,           # 6 hours (Corrected from 1 Day for clarity)
 }
 
 
@@ -32,8 +33,9 @@ redis_client: Redis = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Manages the Redis connection lifecycle.
+    Manages Redis and MongoDB connection lifecycles and ensures DB indexes.
     """
+    # --- Connect to Redis ---
     global redis_client
     print("Connecting to Redis...")
     redis_client = Redis(
@@ -47,14 +49,20 @@ async def lifespan(app: FastAPI):
         print("Successfully connected to Redis.")
     except Exception as e:
         print(f"Error connecting to Redis: {e}")
-        
+
+    # --- Connect to MongoDB and Create Indexes ---
+    await connect_to_mongo()
+    await create_indexes()  # This will run on every startup
 
     yield
 
+    # --- Cleanup on Shutdown ---
     print("Closing Redis connection...")
     if redis_client:
         await redis_client.close()
     print("Redis connection closed.")
+    
+    await close_mongo_connection()
 
 
 # --- Redis Caching Middleware ---
@@ -78,10 +86,8 @@ class RedisCacheMiddleware(BaseHTTPMiddleware):
         except Exception as e:
             print(f"Redis GET error: {e}. Skipping cache.")
 
-        # Get fresh response
         response = await call_next(request)
 
-        # Cache only successful JSON responses
         if response.status_code == 200 and "application/json" in response.headers.get("content-type", ""):
             body_bytes = [section async for section in response.body_iterator]
             raw_body = b"".join(body_bytes)
@@ -129,8 +135,8 @@ app.add_middleware(RedisCacheMiddleware)
 app.include_router(blocks_router, prefix="/blocks", tags=["Blocks"])
 #app.include_router(operations_router, prefix="/operations", tags=["Operations"])
 app.include_router(state_router, prefix="/state", tags=["State"])
-#app.include_router(accounts_router, prefix="/accounts", tags=["Accounts"]) # Consolidated from two includes
-#app.include_router(content_router, prefix="/content", tags=["Content"]) # Consolidated from two includes
+#app.include_router(accounts_router, prefix="/accounts", tags=["Accounts"])
+#app.include_router(content_router, prefix="/content", tags=["Content"])
 #app.include_router(communities_router, prefix="/communities", tags=["Communities"])
 #app.include_router(feeds_router, prefix="/feeds", tags=["Feeds"])
 #app.include_router(market_router, prefix="/market", tags=["Market"])
@@ -147,4 +153,3 @@ class PingResponse(BaseModel):
 async def ping():
     """A simple endpoint to verify that the API is running."""
     return {"response": "pong"}
-

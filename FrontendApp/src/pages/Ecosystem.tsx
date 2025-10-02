@@ -121,9 +121,7 @@ const Ecosystem = () => {
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      {renderIcon(app.icon)}
-                    </div>
+                    {renderIcon(app.icon)}
                     <div>
                       <CardTitle className="text-xl group-hover:text-primary transition-colors">
                         {app.name}

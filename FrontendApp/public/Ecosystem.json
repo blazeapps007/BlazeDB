@@ -66,17 +66,6 @@
     "developer": "@xpilar"
   },
   {
-    "id": "hariraid-h4lab",
-    "name": "Hari Raid",
-    "description": "Hari Raid is a tap-to-earn game on the STEEM blockchain.Players can join raids under certain conditions and summon 3 random cards per battle.Top 20 players share a weekly prize pool of 300 STEEM ",
-    "url": "https://hari-raid.h4lab.com/",
-    "category": "Gaming",
-    "icon": "https://cdn.steemitimages.com/DQmb1eNzsAKcYssyH5ZyRZcfosrLvLAnvuMQC4STchjsGxj/Logo.jpg",
-    "status": "active",
-    "features": [ "STEEM Rewards", "Community Play", "Fair Gaming"],
-    "developer": "@h4lab"
-  },
-  {
     "id": "steempro",
     "name": "SteemPro",
     "description": "Condenser Alternative for STEEM blockchain.",
@@ -115,7 +104,7 @@
     "description": "Automated STEEM bot services for content curation and community management by @botto.steem.",
     "url": "https://botsteem.com",
     "category": "Automation",
-    "icon": "https://steemitimages.com/u/steem.botto/avatar",
+    "icon": "https://steemitimages.com/u/botto.steem/avatar",
     "status": "active",
     "features": ["Auto-voting", "Curation", "Community Tools", "Analytics"],
     "developer": "@botto.steem"

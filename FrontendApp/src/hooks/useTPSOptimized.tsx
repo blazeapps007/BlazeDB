@@ -24,7 +24,7 @@ export const useTPSOptimized = () => {
     staleTime: 2 * 60 * 1000, // 2 minutes (TPS changes slowly)
     gcTime: 10 * 60 * 1000, // 10 minutes
     refetchOnWindowFocus: false,
-    refetchInterval: false, // Managed by useDataManager
+    refetchInterval: false, // Disable automatic refetch
     retry: 2,
   });
 

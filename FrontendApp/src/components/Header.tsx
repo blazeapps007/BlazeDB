@@ -84,9 +84,10 @@ const Header = () => {
           <div className="flex items-center space-x-4">
             <nav className="hidden lg:flex items-center space-x-6">
               <Link to="/blocks" className="text-muted-foreground hover:text-foreground transition-colors">Blocks</Link>
-              <Link to="/internal-market" className="text-muted-foreground hover:text-foreground transition-colors">Market</Link>
+              
               <Link to="/dao-proposals" className="text-muted-foreground hover:text-foreground transition-colors">DAO Proposals</Link>
               <Link to="/witnesses" className="text-muted-foreground hover:text-foreground transition-colors">Witnesses</Link>
+              
               <Link to="/ecosystem" className="text-muted-foreground hover:text-foreground transition-colors">Ecosystem</Link>
             </nav>
 
@@ -128,9 +129,10 @@ const Header = () => {
                   {/* Navigation Links */}
                   <nav className="flex-grow flex flex-col space-y-2">
                     <Link to="/blocks" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center p-3 rounded-md text-base text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors">Blocks</Link>
-                    <Link to="/internal-market" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center p-3 rounded-md text-base text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors">Market</Link>
+                    
                     <Link to="/dao-proposals" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center p-3 rounded-md text-base text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors">DAO Proposals</Link>
                     <Link to="/witnesses" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center p-3 rounded-md text-base text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors">Witnesses</Link>
+                    
                     <Link to="/ecosystem" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center p-3 rounded-md text-base text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors">Ecosystem</Link>
                   </nav>
 

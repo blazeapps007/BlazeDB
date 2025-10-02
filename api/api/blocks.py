@@ -1,24 +1,23 @@
-from fastapi import APIRouter, Query, HTTPException, Path
+from fastapi import APIRouter, Query, HTTPException, Path, Depends
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-from motor.motor_asyncio import AsyncIOMotorClient
+from motor.motor_asyncio import AsyncIOMotorCollection, AsyncIOMotorDatabase
 from bson import ObjectId
-from pydantic import BaseModel, Field
-from typing import List, Optional, Union, Any
-from datetime import datetime, timedelta
+from pydantic import BaseModel, Field, ConfigDict
+from typing import List, Optional, Any
+from datetime import datetime
 
-from config import MONGO_URI, MONGO_DB_NAME, MONGO_COLLECTION_BLOCKS
+# Import the dependency function to get the database connection
+from database import get_database
+import config
 
 router = APIRouter()
 
-try:
-    client = AsyncIOMotorClient(MONGO_URI)
-    db = client[MONGO_DB_NAME]
-    blocks_collection = db[MONGO_COLLECTION_BLOCKS]
-except Exception as e:
-    print(f"Error connecting to MongoDB: {e}")
-    # If the database connection fails, the application will not be able to start properly.
-    raise
+# --- Dependency to get the specific collection ---
+# This function depends on the get_database function and returns the 'blocks' collection.
+async def get_blocks_collection(db: AsyncIOMotorDatabase = Depends(get_database)) -> AsyncIOMotorCollection:
+    """Dependency to get the blocks collection from the database."""
+    return db[config.MONGO_COLLECTION_BLOCKS]
 
 # --- Helper Function ---
 def _format_ops(ops_list: List[list]) -> List[dict]:
@@ -28,6 +27,7 @@ def _format_ops(ops_list: List[list]) -> List[dict]:
     return [{"op_type": op[0], "payload": op[1]} for op in ops_list if isinstance(op, list) and len(op) == 2]
 
 # --- Pydantic Models ---
+# (Your Pydantic models remain unchanged)
 
 class OperationDetail(BaseModel):
     op_type: str
@@ -43,10 +43,12 @@ class Block(BaseModel):
     transactions_count: int
     transactions: Optional[List[dict]] = None
 
-    class Config:
-        allow_population_by_field_name = True
-        orm_mode = True
-        json_encoders = {ObjectId: str}
+    # Updated Pydantic V2 configuration
+    model_config = ConfigDict(
+        populate_by_name=True,
+        from_attributes=True,
+        json_encoders={ObjectId: str},
+    )
 
 class BlocksResponse(BaseModel):
     page: int
@@ -55,6 +57,7 @@ class BlocksResponse(BaseModel):
     blocks: List[Block]
 
 class BlockDetailsResponse(BaseModel):
+    id: str = Field(..., alias="_id")
     block_num: int
     block_id: Optional[str]
     transactions_count: int
@@ -65,8 +68,12 @@ class BlockDetailsResponse(BaseModel):
     timestamp: Optional[datetime]
     virtual_ops: List[OperationDetail]
 
-    class Config:
-        json_encoders = {ObjectId: str}
+    # Updated Pydantic V2 configuration
+    model_config = ConfigDict(
+        populate_by_name=True,
+        from_attributes=True,
+        json_encoders={ObjectId: str},
+    )
 
 class OpsInBlockResponse(BaseModel):
     block_num: int
@@ -101,7 +108,7 @@ class TransactionDetailResponse(BaseModel):
     details: TransactionDetail
 
 
-# --- API Endpoints ---
+# --- API Endpoints (Refactored with Dependency Injection) ---
 
 @router.get(
     "/getBlocks",
@@ -112,6 +119,7 @@ async def get_blocks(
     limit: int = Query(30, ge=1, le=100, description="Number of blocks to return"),
     last_block_num: Optional[int] = Query(None, description="Last block_num from previous page for pagination"),
     with_transactions: bool = Query(False, description="Include transactions in the response"),
+    blocks_collection: AsyncIOMotorCollection = Depends(get_blocks_collection),
 ):
     pipeline = []
     if last_block_num is not None:
@@ -147,14 +155,17 @@ async def get_blocks(
 )
 async def get_block_details(
     block_num: int = Query(..., description="The block number to retrieve"),
+    blocks_collection: AsyncIOMotorCollection = Depends(get_blocks_collection),
 ):
     block = await blocks_collection.find_one({"block_num": block_num})
     if not block:
         raise HTTPException(status_code=404, detail=f"Block {block_num} not found")
 
     block['virtual_ops'] = _format_ops(block.get('virtual_ops', []))
+    block['transactions_count'] = len(block.get('transactions', []))
 
-    return JSONResponse(content=jsonable_encoder(block, custom_encoder={ObjectId: str}))
+    return BlockDetailsResponse(**block)
+
 
 @router.get(
     "/getBlockById/{block_id}",
@@ -162,15 +173,18 @@ async def get_block_details(
     response_model=BlockDetailsResponse,
 )
 async def get_block_by_id(
-    block_id: str = Path(..., description="The unique hash ID of the block to retrieve")
+    block_id: str = Path(..., description="The unique hash ID of the block to retrieve"),
+    blocks_collection: AsyncIOMotorCollection = Depends(get_blocks_collection),
 ):
     block = await blocks_collection.find_one({"block_id": block_id})
     if not block:
         raise HTTPException(status_code=404, detail=f"Block with id {block_id} not found")
 
     block['virtual_ops'] = _format_ops(block.get('virtual_ops', []))
+    block['transactions_count'] = len(block.get('transactions', []))
 
-    return JSONResponse(content=jsonable_encoder(block, custom_encoder={ObjectId: str}))
+    return BlockDetailsResponse(**block)
+
 
 @router.get(
     "/getTransactionById/{transaction_id}",
@@ -178,54 +192,50 @@ async def get_block_by_id(
     response_model=TransactionDetailResponse,
 )
 async def get_transaction_by_id(
-    transaction_id: str = Path(..., description="The unique ID of the transaction to retrieve")
+    transaction_id: str = Path(..., description="The unique ID of the transaction to retrieve"),
+    blocks_collection: AsyncIOMotorCollection = Depends(get_blocks_collection),
 ):
-    block_with_trx = await blocks_collection.find_one(
-        {"transactions.transaction_id": transaction_id},
-        {"block_num": 1, "transactions": {"$elemMatch": {"transaction_id": transaction_id}}}
-    )
+    pipeline = [
+        {"$match": {"transactions.transaction_id": transaction_id}},
+        {"$project": {
+            "block_num": 1,
+            "transaction_num": {"$indexOfArray": ["$transactions.transaction_id", transaction_id]},
+            "transaction_data": {
+                "$first": {
+                    "$filter": {
+                        "input": "$transactions",
+                        "as": "trx",
+                        "cond": {"$eq": ["$$trx.transaction_id", transaction_id]}
+                    }
+                }
+            }
+        }}
+    ]
+    result = await blocks_collection.aggregate(pipeline).to_list(length=1)
 
-    if not block_with_trx or not block_with_trx.get("transactions"):
+    if not result:
         raise HTTPException(status_code=404, detail=f"Transaction with ID {transaction_id} not found")
 
-    trx_data = block_with_trx["transactions"][0]
-    block_num = block_with_trx["block_num"]
-    transaction_num = -1 # Default value
-
-    original_block = await blocks_collection.find_one(
-        {"block_num": block_num},
-        {"transactions.transaction_id": 1} 
-    )
-
-    if original_block and original_block.get("transactions"):
-        trx_ids = [trx.get("transaction_id") for trx in original_block["transactions"]]
-        try:
-            transaction_num = trx_ids.index(transaction_id)
-        except ValueError:
-            pass
-
-    response = TransactionDetailResponse(
+    trx_info = result[0]
+    trx_data = trx_info["transaction_data"]
+    
+    return TransactionDetailResponse(
         transaction_id=trx_data.get("transaction_id"),
-        block_num=block_num,
-        transaction_num=transaction_num,
+        block_num=trx_info["block_num"],
+        transaction_num=trx_info["transaction_num"],
         operations=_format_ops(trx_data.get("operations", [])),
-        details=TransactionDetail(
-            ref_block_num=trx_data.get("ref_block_num"),
-            ref_block_prefix=trx_data.get("ref_block_prefix"),
-            expiration=trx_data.get("expiration"),
-            signatures=trx_data.get("signatures", []),
-            extensions=trx_data.get("extensions", [])
-        )
+        details=TransactionDetail(**trx_data)
     )
-
-    return response
 
 @router.get(
     "/getOpsInBlock",
     summary="Get all operations (regular and virtual) in a specific block",
     response_model=OpsInBlockResponse,
 )
-async def get_ops_in_block(block_num: int = Query(..., description="The block number to inspect")):
+async def get_ops_in_block(
+    block_num: int = Query(..., description="The block number to inspect"),
+    blocks_collection: AsyncIOMotorCollection = Depends(get_blocks_collection),
+):
     block = await blocks_collection.find_one(
         {"block_num": block_num},
         {"transactions.operations": 1, "virtual_ops": 1}
@@ -245,13 +255,15 @@ async def get_ops_in_block(block_num: int = Query(..., description="The block nu
     summary="Get only the virtual operations in a specific block",
     response_model=VirtualOpsInBlockResponse,
 )
-async def get_virtual_ops_in_block(block_num: int = Query(..., description="The block number to inspect")):
+async def get_virtual_ops_in_block(
+    block_num: int = Query(..., description="The block number to inspect"),
+    blocks_collection: AsyncIOMotorCollection = Depends(get_blocks_collection),
+):
     block = await blocks_collection.find_one({"block_num": block_num}, {"virtual_ops": 1})
     if not block:
         raise HTTPException(status_code=404, detail=f"Block {block_num} not found")
 
     virtual_ops = _format_ops(block.get("virtual_ops", []))
-
     return VirtualOpsInBlockResponse(block_num=block_num, virtual_ops=virtual_ops)
 
 
@@ -263,6 +275,7 @@ async def get_virtual_ops_in_block(block_num: int = Query(..., description="The 
 async def get_transaction_count_in_range(
     start_block: int = Query(..., description="The starting block number of the range"),
     end_block: int = Query(..., description="The ending block number of the range"),
+    blocks_collection: AsyncIOMotorCollection = Depends(get_blocks_collection),
 ):
     pipeline = [
         {"$match": {"block_num": {"$gte": start_block, "$lte": end_block}}},
@@ -288,7 +301,8 @@ async def get_transaction_count_in_range(
 async def get_blocks_in_range(
     start_block: int = Query(..., description="The starting block number of the range"),
     end_block: int = Query(..., description="The ending block number of the range"),
-    limit: int = Query(100, ge=1, le=1000, description="Max number of blocks to return")
+    limit: int = Query(100, ge=1, le=1000, description="Max number of blocks to return"),
+    blocks_collection: AsyncIOMotorCollection = Depends(get_blocks_collection),
 ):
     cursor = blocks_collection.find({
         "block_num": {"$gte": start_block, "$lte": end_block}
@@ -298,10 +312,13 @@ async def get_blocks_in_range(
     if not blocks:
         raise HTTPException(status_code=404, detail="No blocks found in the specified range.")
 
+    response_blocks = []
     for block in blocks:
         block['virtual_ops'] = _format_ops(block.get('virtual_ops', []))
+        block['transactions_count'] = len(block.get('transactions', []))
+        response_blocks.append(BlockDetailsResponse(**block))
 
-    return JSONResponse(content=jsonable_encoder(blocks, custom_encoder={ObjectId: str}))
+    return response_blocks
 
 
 @router.get(
@@ -315,6 +332,7 @@ async def search_user_activity(
     end_date: Optional[datetime] = Query(None, description="End timestamp (UTC)"),
     start_block: Optional[int] = Query(None, description="Start block number"),
     end_block: Optional[int] = Query(None, description="End block number"),
+    blocks_collection: AsyncIOMotorCollection = Depends(get_blocks_collection),
 ):
     match_stage = {}
     range_queried = ""
@@ -337,9 +355,7 @@ async def search_user_activity(
     pipeline = [
         {"$match": match_stage},
         {"$project": {
-            "_id": 0,
-            "block_num": 1,
-            "timestamp": 1,
+            "_id": 0, "block_num": 1, "timestamp": 1,
             "all_ops": {"$concatArrays": [
                 {"$ifNull": ["$virtual_ops", []]},
                 {"$reduce": {
@@ -359,7 +375,5 @@ async def search_user_activity(
     ]
 
     activities = await blocks_collection.aggregate(pipeline).to_list(length=500)
-
     encoded_activities = jsonable_encoder(activities)
-
     return UserActivityResponse(username=username, range_queried=range_queried, activities=encoded_activities)
